@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import 'screens/service_request_form_screen.dart';
+
 void main() {
   runApp(const CMRCampusApp());
 }
@@ -3708,9 +3710,12 @@ class _CampusHomePageState extends State<CampusHomePage> {
               onTap: () {
                 Navigator.pop(context);
 
-                showPremiumSnack(
-                  'Student Help selected.',
-                  icon: Icons.support_agent_rounded,
+                // Opens the Student Help Request form (Form assignment).
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const ServiceRequestFormScreen(),
+                  ),
                 );
               },
             ),
