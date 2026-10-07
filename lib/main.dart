@@ -1,7 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+import 'models/campus_data.dart';
+import 'routes/app_routes.dart';
+import 'screens/events_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/service_detail_screen.dart';
 import 'screens/service_request_form_screen.dart';
+import 'screens/services_screen.dart';
+import 'screens/timetable_screen.dart';
+import 'screens/unknown_route_screen.dart';
+import 'widgets/campus_hub_section.dart';
 
 void main() {
   runApp(const CMRCampusApp());
@@ -29,7 +38,37 @@ class CMRCampusApp extends StatelessWidget {
           brightness: Brightness.light,
         ),
       ),
+      // Dashboard ('/') is the existing home page.
       home: const CampusHomePage(),
+      // Named routes (never repeat '/' here when `home` is used).
+      routes: {
+        AppRoutes.timetable: (_) => const TimetableScreen(),
+        AppRoutes.services: (_) => const ServicesScreen(),
+        AppRoutes.events: (_) => const EventsScreen(),
+        AppRoutes.profile: (_) => const ProfileScreen(),
+        AppRoutes.studentHelp: (_) => const ServiceRequestFormScreen(),
+      },
+      // Routes that need an argument are built here.
+      onGenerateRoute: (settings) {
+        if (settings.name == AppRoutes.serviceDetail) {
+          final args = settings.arguments;
+          if (args is CampusService) {
+            return MaterialPageRoute(
+              builder: (_) => ServiceDetailScreen(service: args),
+              settings: settings,
+            );
+          }
+        }
+        return null; // falls through to onUnknownRoute
+      },
+      // Fallback for any route name that is not registered.
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (_) =>
+              UnknownRouteScreen(routeName: settings.name ?? 'unknown'),
+          settings: settings,
+        );
+      },
     );
   }
 }
@@ -1084,7 +1123,7 @@ class _CampusHomePageState extends State<CampusHomePage> {
               ],
             ),
             child: Image.asset(
-              'assets/cmr_logo.png',
+              'assets/cmr_mark.png',
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return const Center(
@@ -1266,6 +1305,8 @@ class _CampusHomePageState extends State<CampusHomePage> {
             const SizedBox(height: 24),
             _buildQuickActions(),
             const SizedBox(height: 26),
+            const CampusHubSection(),
+            const SizedBox(height: 26),
             _buildMissionPreview(),
             const SizedBox(height: 26),
             _buildUpcomingPreview(),
@@ -1350,7 +1391,7 @@ class _CampusHomePageState extends State<CampusHomePage> {
               borderRadius: BorderRadius.circular(11),
             ),
             child: Image.asset(
-              'assets/cmr_logo.png',
+              'assets/cmr_mark.png',
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return const Center(
@@ -1400,6 +1441,39 @@ class _CampusHomePageState extends State<CampusHomePage> {
         ),
         child: Stack(
           children: [
+            // Campus photo (assets/home_page.png) under the brand gradient,
+            // so the white text stays readable and the colours stay the same.
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      'assets/home_page.png',
+                      fit: BoxFit.cover,
+                      cacheWidth: 1100,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [
+                            blue.withOpacity(0.92),
+                            const Color(0xFF6B5DFE).withOpacity(0.78),
+                            purple.withOpacity(0.55),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             Positioned(
               top: -45,
               right: -25,
@@ -3337,7 +3411,7 @@ class _CampusHomePageState extends State<CampusHomePage> {
                         ),
                         child: ClipOval(
                           child: Image.asset(
-                            'assets/cmr_logo.png',
+                            'assets/cmr_mark.png',
                             fit: BoxFit.contain,
                             errorBuilder:
                                 (context, error, stackTrace) {
@@ -3619,7 +3693,7 @@ class _CampusHomePageState extends State<CampusHomePage> {
                           BorderRadius.circular(17),
                     ),
                     child: Image.asset(
-                      'assets/cmr_logo.png',
+                      'assets/cmr_mark.png',
                       fit: BoxFit.contain,
                       errorBuilder:
                           (context, error, stackTrace) {
@@ -3711,12 +3785,7 @@ class _CampusHomePageState extends State<CampusHomePage> {
                 Navigator.pop(context);
 
                 // Opens the Student Help Request form (Form assignment).
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const ServiceRequestFormScreen(),
-                  ),
-                );
+                Navigator.pushNamed(context, AppRoutes.studentHelp);
               },
             ),
             _drawerItem(
